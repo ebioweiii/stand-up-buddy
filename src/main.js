@@ -96,26 +96,41 @@ function createPopupWindow() {
   return win;
 }
 
-function showPopup() {
-  if (store.get('paused')) return;
-  clearScheduledTimer();
+// The popup window is created once and reused (hidden/shown) for every
+// reminder, so 'ready-to-show'/DOMContentLoaded only ever fire on the very
+// first show. Every subsequent presentation has to be pushed to the
+// renderer explicitly, or the message and sound would only ever work once.
+function presentPopup(mode) {
+  const intervalMinutes = store.get('intervalMinutes');
+  const send = () => popupWindow.webContents.send('popup-show', { mode, intervalMinutes });
+  if (popupWindow.webContents.isLoading()) {
+    popupWindow.once('ready-to-show', () => {
+      popupWindow.showInactive();
+      send();
+    });
+  } else {
+    popupWindow.showInactive();
+    send();
+  }
+}
+
+function showPopup(mode = 'reminder') {
+  if (mode === 'reminder') {
+    if (store.get('paused')) return;
+    clearScheduledTimer();
+  }
 
   if (!popupWindow || popupWindow.isDestroyed()) {
     popupWindow = createPopupWindow();
   }
   const { x, y } = getPopupPosition();
   popupWindow.setPosition(x, y);
-  popupWindow.once('ready-to-show', () => {
-    popupWindow.showInactive();
-  });
-  if (!popupWindow.webContents.isLoading()) {
-    popupWindow.showInactive();
-  }
+  presentPopup(mode);
 
   if (autoDismissHandle) clearTimeout(autoDismissHandle);
   autoDismissHandle = setTimeout(() => {
     dismissPopup();
-    scheduleNext(store.get('intervalMinutes'));
+    if (mode === 'reminder') scheduleNext(store.get('intervalMinutes'));
   }, POPUP_AUTO_DISMISS_MS);
 }
 
@@ -125,6 +140,7 @@ function dismissPopup() {
     autoDismissHandle = null;
   }
   if (popupWindow && !popupWindow.isDestroyed()) {
+    popupWindow.webContents.send('popup-hide');
     popupWindow.hide();
   }
 }
@@ -137,6 +153,10 @@ ipcMain.on('popup-standing', () => {
 ipcMain.on('popup-snooze', () => {
   dismissPopup();
   scheduleNext(SNOOZE_MINUTES);
+});
+
+ipcMain.on('popup-welcome-dismiss', () => {
+  dismissPopup();
 });
 
 function setPaused(paused) {
@@ -230,6 +250,7 @@ app.whenReady().then(() => {
   }
   createTray();
   scheduleNext(store.get('intervalMinutes'));
+  showPopup('welcome');
 });
 
 app.on('window-all-closed', (event) => {
