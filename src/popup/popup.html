@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self';" />
+<title>Stand Up Buddy</title>
+<link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="stage">
+    <div class="crt-frame">
+      <div class="scanlines" aria-hidden="true"></div>
+      <div class="titlebar">
+        <span class="title-dot"></span>
+        STAND UP BUDDY
+        <span class="title-dot"></span>
+      </div>
+
+      <div class="content">
+        <div class="sprite-stage">
+          <div class="sprite-shadow"></div>
+          <div class="sprite-bounce">
+            <div id="buddy-sprite" class="sprite-pixel"></div>
+          </div>
+        </div>
+        <p class="message" id="message">Time to stretch those legs, hero!</p>
+      </div>
+
+      <div class="buttons">
+        <button id="btn-standing" class="btn btn-primary">Standing! 🎉</button>
+        <button id="btn-snooze" class="btn btn-secondary">5 more min</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="sprite.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

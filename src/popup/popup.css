@@ -1,0 +1,202 @@
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('../../assets/fonts/PressStart2P-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --outline: #22223b;
+  --bg-panel: #f5e6c8;
+  --bg-panel-dark: #e8d3a3;
+  --body-green: #52b788;
+  --body-green-dark: #378762;
+  --blush: #ff8fa3;
+  --accent-purple: #6c5ce7;
+  --accent-purple-dark: #4c3fc4;
+  --accent-pink: #ff6b9d;
+  --accent-pink-dark: #d84c7c;
+  --text: #22223b;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Press Start 2P', monospace;
+  image-rendering: pixelated;
+}
+
+.stage {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.crt-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-panel);
+  border: 6px solid var(--outline);
+  clip-path: polygon(
+    0 14px, 14px 14px, 14px 0,
+    calc(100% - 14px) 0, calc(100% - 14px) 14px, 100% 14px,
+    100% calc(100% - 14px), calc(100% - 14px) calc(100% - 14px), calc(100% - 14px) 100%,
+    14px 100%, 14px calc(100% - 14px), 0 calc(100% - 14px)
+  );
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(34, 34, 59, 0) 0px,
+    rgba(34, 34, 59, 0) 2px,
+    rgba(34, 34, 59, 0.08) 3px,
+    rgba(34, 34, 59, 0.08) 4px
+  );
+  mix-blend-mode: multiply;
+  z-index: 5;
+}
+
+.titlebar {
+  background: var(--outline);
+  color: var(--bg-panel);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.title-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-pink);
+  display: inline-block;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 14px 2px;
+}
+
+.sprite-stage {
+  position: relative;
+  width: 108px;
+  height: 116px;
+}
+
+.sprite-shadow {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 12px;
+  background: rgba(34, 34, 59, 0.25);
+  border-radius: 50%;
+  filter: blur(1px);
+  animation: shadow-pulse 1.1s ease-in-out infinite;
+}
+
+.sprite-bounce {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 108px;
+  height: 108px;
+  animation: buddy-bounce 1.1s ease-in-out infinite;
+}
+
+.sprite-pixel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+}
+
+@keyframes buddy-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shadow-pulse {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.25; }
+  50% { transform: translateX(-50%) scale(0.82); opacity: 0.15; }
+}
+
+.message {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.7;
+  text-align: center;
+  color: var(--text);
+  max-width: 240px;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  flex-shrink: 0;
+}
+
+.btn {
+  flex: 1;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--bg-panel);
+  border: 3px solid var(--outline);
+  padding: 10px 6px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--outline);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--outline);
+}
+
+.btn-primary {
+  background: var(--body-green);
+  border-color: var(--body-green-dark);
+  box-shadow: 3px 3px 0 var(--body-green-dark);
+}
+.btn-primary:active { box-shadow: 0 0 0 var(--body-green-dark); }
+
+.btn-secondary {
+  background: var(--accent-purple);
+  border-color: var(--accent-purple-dark);
+  box-shadow: 3px 3px 0 var(--accent-purple-dark);
+}
+.btn-secondary:active { box-shadow: 0 0 0 var(--accent-purple-dark); }
