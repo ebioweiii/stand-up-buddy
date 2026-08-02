@@ -1,12 +1,13 @@
 'use strict';
 
-const { app, Tray, Menu, BrowserWindow, screen, ipcMain } = require('electron');
+const { app, Tray, Menu, BrowserWindow, screen, ipcMain, dialog } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const { createTrayIcon } = require('./trayIcon');
 
 const INTERVAL_CHOICES = [15, 30, 45, 60];
 const SNOOZE_MINUTES = 5;
+const AWAY_NUDGE_MS = 10 * 60 * 1000;
 const POPUP_AUTO_DISMISS_MS = 2 * 60 * 1000;
 const POPUP_WIDTH = 340;
 const POPUP_HEIGHT = 300;
@@ -16,6 +17,7 @@ const store = new Store({
   defaults: {
     intervalMinutes: 30,
     paused: false,
+    muted: false,
   },
 });
 
@@ -27,6 +29,8 @@ let tray = null;
 let popupWindow = null;
 let timerHandle = null;
 let autoDismissHandle = null;
+let awayNudgeHandle = null;
+let isAway = false;
 let nextFireAt = null;
 
 function minutesToMs(minutes) {
@@ -102,7 +106,8 @@ function createPopupWindow() {
 // renderer explicitly, or the message and sound would only ever work once.
 function presentPopup(mode) {
   const intervalMinutes = store.get('intervalMinutes');
-  const send = () => popupWindow.webContents.send('popup-show', { mode, intervalMinutes });
+  const muted = store.get('muted');
+  const send = () => popupWindow.webContents.send('popup-show', { mode, intervalMinutes, muted });
   if (popupWindow.webContents.isLoading()) {
     popupWindow.once('ready-to-show', () => {
       popupWindow.showInactive();
@@ -145,7 +150,46 @@ function dismissPopup() {
   }
 }
 
+// Clicking "Standing!" doesn't dismiss the popup — it switches to an "away"
+// state and waits for an explicit "I'm back" click before starting the next
+// countdown, so the interval reflects time actually spent back at the desk,
+// not time spent away. A one-off nudge fires if you forget to click back in.
+function enterAwayMode() {
+  isAway = true;
+  if (autoDismissHandle) {
+    clearTimeout(autoDismissHandle);
+    autoDismissHandle = null;
+  }
+  if (popupWindow && !popupWindow.isDestroyed()) {
+    popupWindow.webContents.send('popup-show', {
+      mode: 'away',
+      intervalMinutes: store.get('intervalMinutes'),
+      muted: store.get('muted'),
+    });
+  }
+  if (awayNudgeHandle) clearTimeout(awayNudgeHandle);
+  awayNudgeHandle = setTimeout(() => {
+    awayNudgeHandle = null;
+    if (isAway && popupWindow && !popupWindow.isDestroyed()) {
+      popupWindow.webContents.send('popup-nudge');
+    }
+  }, AWAY_NUDGE_MS);
+}
+
+function exitAwayMode() {
+  isAway = false;
+  if (awayNudgeHandle) {
+    clearTimeout(awayNudgeHandle);
+    awayNudgeHandle = null;
+  }
+}
+
 ipcMain.on('popup-standing', () => {
+  enterAwayMode();
+});
+
+ipcMain.on('popup-im-back', () => {
+  exitAwayMode();
   dismissPopup();
   scheduleNext(store.get('intervalMinutes'));
 });
@@ -159,16 +203,38 @@ ipcMain.on('popup-welcome-dismiss', () => {
   dismissPopup();
 });
 
+ipcMain.on('popup-quit-request', () => {
+  const choice = dialog.showMessageBoxSync(popupWindow, {
+    type: 'question',
+    buttons: ['Quit', 'Cancel'],
+    defaultId: 1,
+    cancelId: 1,
+    title: 'Quit Stand Up Buddy?',
+    message: 'Quit Stand Up Buddy?',
+    detail: "You won't get any more reminders until you reopen the app.",
+  });
+  if (choice === 0) app.quit();
+});
+
 function setPaused(paused) {
   store.set('paused', paused);
   if (paused) {
     clearScheduledTimer();
+    exitAwayMode();
     dismissPopup();
   } else {
     scheduleNext(store.get('intervalMinutes'));
   }
   refreshTrayMenu();
   updateTrayIcon();
+}
+
+function setMuted(muted) {
+  store.set('muted', muted);
+  refreshTrayMenu();
+  if (popupWindow && !popupWindow.isDestroyed()) {
+    popupWindow.webContents.send('popup-mute-changed', { muted });
+  }
 }
 
 function setInterval_(minutes) {
@@ -186,6 +252,7 @@ function updateTrayIcon() {
 }
 
 function formatCountdown() {
+  if (isAway) return "Waiting for you to get back...";
   if (store.get('paused') || !nextFireAt) return 'Reminders paused';
   const msLeft = Math.max(0, nextFireAt - Date.now());
   const mins = Math.floor(msLeft / 60000);
@@ -196,6 +263,7 @@ function formatCountdown() {
 function refreshTrayMenu() {
   if (!tray) return;
   const paused = store.get('paused');
+  const muted = store.get('muted');
   const currentInterval = store.get('intervalMinutes');
 
   const template = [
@@ -205,6 +273,10 @@ function refreshTrayMenu() {
     {
       label: paused ? 'Resume reminders' : 'Pause reminders',
       click: () => setPaused(!paused),
+    },
+    {
+      label: muted ? 'Unmute sound' : 'Mute sound',
+      click: () => setMuted(!muted),
     },
     {
       label: 'Remind me every…',
@@ -261,4 +333,5 @@ app.on('window-all-closed', (event) => {
 app.on('before-quit', () => {
   clearScheduledTimer();
   if (autoDismissHandle) clearTimeout(autoDismissHandle);
+  if (awayNudgeHandle) clearTimeout(awayNudgeHandle);
 });

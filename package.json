@@ -1,6 +1,6 @@
 {
   "name": "stand-up-buddy",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A whimsical retro pixel-art reminder that pops up every so often to tell you to stand up.",
   "main": "src/main.js",
   "author": "Stand Up Buddy",

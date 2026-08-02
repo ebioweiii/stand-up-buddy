@@ -82,11 +82,10 @@ html, body {
   color: var(--bg-panel);
   font-size: 10px;
   letter-spacing: 1px;
-  text-align: center;
   padding: 8px 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 8px;
   flex-shrink: 0;
 }
@@ -96,6 +95,33 @@ html, body {
   height: 6px;
   background: var(--accent-pink);
   display: inline-block;
+  flex-shrink: 0;
+}
+
+.title-text {
+  flex: 1;
+  text-align: center;
+}
+
+.title-close {
+  flex-shrink: 0;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--bg-panel);
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-pink);
+  border: 2px solid var(--accent-pink-dark);
+}
+
+.title-close:active {
+  transform: translate(1px, 1px);
 }
 
 .content {

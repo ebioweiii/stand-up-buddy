@@ -13,8 +13,15 @@ const WELCOME_MESSAGES = [
   "All set! I'll pop up every {interval} minutes to keep you moving.",
 ];
 
+const AWAY_MESSAGES = [
+  "Nice! Tap the button when you're back at your desk.",
+  "Go get 'em! I'll be here when you're back.",
+  "Enjoy the stretch — click below once you're back at work.",
+];
+
 let audioCtx = null;
 let blipLoopHandle = null;
+let muted = false;
 
 function getAudioContext() {
   if (!audioCtx || audioCtx.state === 'closed') {
@@ -24,6 +31,7 @@ function getAudioContext() {
 }
 
 function playBlipOnce() {
+  if (muted) return;
   try {
     const ctx = getAudioContext();
     const notes = [660, 880, 1320]; // quick rising 8-bit arpeggio
@@ -53,6 +61,7 @@ function playBlipOnce() {
 
 function startBlipLoop() {
   stopBlipLoop();
+  if (muted) return;
   playBlipOnce();
   blipLoopHandle = setInterval(playBlipOnce, 1500);
 }
@@ -82,14 +91,20 @@ function initSprite() {
   }, 1600);
 }
 
+function flashCheer() {
+  document.getElementById('buddy-sprite').style.boxShadow =
+    window.BuddySprite.boxShadowForFrame('cheer');
+}
+
 function pickMessage(mode, intervalMinutes) {
   if (mode === 'welcome') {
-    const pool = WELCOME_MESSAGES;
-    const text = pool[Math.floor(Math.random() * pool.length)];
+    const text = WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
     return text.replace('{interval}', intervalMinutes ?? 30);
   }
-  const pool = REMINDER_MESSAGES;
-  return pool[Math.floor(Math.random() * pool.length)];
+  if (mode === 'away') {
+    return AWAY_MESSAGES[Math.floor(Math.random() * AWAY_MESSAGES.length)];
+  }
+  return REMINDER_MESSAGES[Math.floor(Math.random() * REMINDER_MESSAGES.length)];
 }
 
 function applyMode(mode, intervalMinutes) {
@@ -105,6 +120,14 @@ function applyMode(mode, intervalMinutes) {
       stopBlipLoop();
       window.standUpBuddy.welcomeDismiss();
     };
+  } else if (mode === 'away') {
+    snoozeBtn.style.display = 'none';
+    standingBtn.textContent = "I'm back 👋";
+    standingBtn.onclick = () => {
+      stopBlipLoop();
+      window.standUpBuddy.imBack();
+    };
+    flashCheer();
   } else {
     snoozeBtn.style.display = '';
     standingBtn.textContent = 'Standing! 🎉';
@@ -120,6 +143,9 @@ function initButtons() {
     stopBlipLoop();
     window.standUpBuddy.snooze();
   });
+  document.getElementById('btn-quit').addEventListener('click', () => {
+    window.standUpBuddy.quit();
+  });
   // btn-standing's click handler is (re)assigned per mode in applyMode().
 }
 
@@ -127,11 +153,27 @@ window.addEventListener('DOMContentLoaded', () => {
   initSprite();
   initButtons();
 
-  window.standUpBuddy.onShow(({ mode, intervalMinutes }) => {
+  window.standUpBuddy.onShow(({ mode, intervalMinutes, muted: initialMuted }) => {
+    if (typeof initialMuted === 'boolean') muted = initialMuted;
     applyMode(mode, intervalMinutes);
-    startBlipLoop();
+    // Arriving into "away" mode is silent — the alarm already did its job.
+    if (mode === 'away') {
+      stopBlipLoop();
+    } else {
+      startBlipLoop();
+    }
   });
+
   window.standUpBuddy.onHide(() => {
     stopBlipLoop();
+  });
+
+  window.standUpBuddy.onNudge(() => {
+    playBlipOnce();
+  });
+
+  window.standUpBuddy.onMuteChanged(({ muted: newMuted }) => {
+    muted = newMuted;
+    if (muted) stopBlipLoop();
   });
 });
