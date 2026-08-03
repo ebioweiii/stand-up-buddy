@@ -15,7 +15,12 @@ Grab the latest installer from the [Releases page](https://github.com/ebioweiii/
 
 These builds aren't code-signed (that requires a paid Apple Developer ID / Windows certificate), so your OS will flag them as being from an unidentified developer the first time. This is normal, not a sign anything is broken.
 
-- **macOS**: after copying the app to Applications, **right-click → Open** the first time (instead of double-clicking). Click "Open" on the dialog that appears. You only need to do this once.
+- **macOS**: on some versions, right-click → Open isn't enough — Gatekeeper flags the app outright and moves it straight to the Trash. If that happens:
+  1. Drag `Stand Up Buddy.app` from the mounted disk image into your Applications folder.
+  2. Double-click **`Fix macOS Security Block.command`**, also on the disk image, right next to the app. It'll ask for your Mac login password (typing is invisible, that's normal) and re-signs the app locally so macOS trusts it. You only need to do this once per install.
+  3. Open Stand Up Buddy from Applications as normal.
+
+  (The script only touches Stand Up Buddy — feel free to open it in a text editor first to see exactly what it runs: [`scripts/fix-mac-security-block.command`](scripts/fix-mac-security-block.command).)
 - **Windows**: SmartScreen will show "Windows protected your PC". Click **More info**, then **Run anyway**.
 
 ## What it does
