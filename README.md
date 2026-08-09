@@ -21,6 +21,14 @@ These builds aren't code-signed (that requires a paid Apple Developer ID / Windo
   3. Open Stand Up Buddy from Applications as normal.
 
   (The script only touches Stand Up Buddy — feel free to open it in a text editor first to see exactly what it runs: [`scripts/fix-mac-security-block.command`](scripts/fix-mac-security-block.command).)
+
+  **Prefer Terminal?** With `Stand Up Buddy.app` already in your Applications folder, this does the same thing as the script — paste it into Terminal and enter your Mac password when asked:
+
+  ```bash
+  sudo xattr -cr "/Applications/Stand Up Buddy.app" && sudo codesign --force --deep --sign - "/Applications/Stand Up Buddy.app"
+  ```
+
+  It clears the quarantine flag macOS puts on downloaded apps and re-signs Stand Up Buddy locally so it'll launch. (Only run commands like this for apps you trust — it works because it re-signs the app under your own machine's authority.)
 - **Windows**: SmartScreen will show "Windows protected your PC". Click **More info**, then **Run anyway**.
 
 ## What it does
