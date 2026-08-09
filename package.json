@@ -1,6 +1,6 @@
 {
   "name": "stand-up-buddy",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A whimsical retro pixel-art reminder that pops up every so often to tell you to stand up.",
   "main": "src/main.js",
   "author": "Stand Up Buddy",
@@ -29,6 +29,7 @@
       "assets/**/*",
       "package.json"
     ],
+    "artifactName": "Stand-Up-Buddy-${os}.${ext}",
     "directories": {
       "output": "dist"
     },
