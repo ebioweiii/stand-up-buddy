@@ -144,14 +144,16 @@
     border-color: var(--green-dark);
     box-shadow: 5px 5px 0 var(--green-dark);
   }
-  .btn-mac:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--green-dark); }
+  .btn-mac:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--green-dark); filter: brightness(1.08); }
+  .btn-mac:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--green-dark); filter: none; }
 
   .btn-win {
     background: var(--purple);
     border-color: var(--purple-dark);
     box-shadow: 5px 5px 0 var(--purple-dark);
   }
-  .btn-win:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--purple-dark); }
+  .btn-win:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--purple-dark); filter: brightness(1.08); }
+  .btn-win:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--purple-dark); filter: none; }
 
   .btn .rec {
     position: absolute;
@@ -219,7 +221,7 @@
     <div class="buddy-shadow"></div>
 
     <h1>STAND UP BUDDY</h1>
-    <p class="tagline">Your desk's little conscience. A whimsical retro pixel pal that pops up every so often to nudge you to stand up and stretch.</p>
+    <p class="tagline">Your desk's little conscience. A&nbsp;whimsical retro pixel pal that pops up every so often to nudge you to stand up and stretch.</p>
 
     <div class="buttons">
       <a class="btn btn-mac" id="btn-mac" href="https://github.com/ebioweiii/stand-up-buddy/releases/latest/download/Stand-Up-Buddy-mac.dmg">
