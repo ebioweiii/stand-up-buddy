@@ -179,6 +179,18 @@
   }
   .subnote a { color: var(--pink-2); }
 
+  .mobile-note {
+    display: none;
+    font-size: 9px;
+    line-height: 1.8;
+    color: var(--panel);
+    background: var(--bg-2);
+    border: 3px solid var(--pink);
+    padding: 14px 16px;
+    margin: 0 auto 20px;
+    max-width: 340px;
+  }
+
   .features {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -214,6 +226,7 @@
     .tagline { font-size: 11px; }
     .features { grid-template-columns: 1fr; }
     .btn { width: 100%; justify-content: center; }
+    .mobile-note { display: block; }
   }
 </style>
 </head>
@@ -237,6 +250,8 @@
         <span class="rec">that's you!</span>
       </a>
     </div>
+
+    <p class="mobile-note">💻 This is a desktop app — open this page on your Mac or PC to install it.</p>
 
     <p class="subnote">Free &amp; open source. First launch on macOS may need a quick unblock step — <a href="https://github.com/ebioweiii/stand-up-buddy#first-launch-warning-expected">see how</a>.</p>
 
