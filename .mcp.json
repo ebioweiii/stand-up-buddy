@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "anchor": {
+      "command": "/Users/godspowerehioze/Desktop/Stand Up Buddy/.tools/node/bin/node",
+      "args": [
+        "/Users/godspowerehioze/Desktop/Stand Up Buddy/.tools/node/lib/node_modules/@jon4ohio/anchor-runtime/bin/mcp.js"
+      ]
+    }
+  }
+}
