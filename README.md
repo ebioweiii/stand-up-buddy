@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="marketing/standupbuddy-1080.gif" alt="Stand Up Buddy" width="360" />
+</p>
+
 # Stand Up Buddy
 
 A whimsical retro pixel-art tray app that pops up every so often to remind you to stand up and stretch.
