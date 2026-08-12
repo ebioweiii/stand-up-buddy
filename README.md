@@ -15,20 +15,17 @@ Grab the latest installer from the [Releases page](https://github.com/ebioweiii/
 
 These builds aren't code-signed (that requires a paid Apple Developer ID / Windows certificate), so your OS will flag them as being from an unidentified developer the first time. This is normal, not a sign anything is broken.
 
-- **macOS**: on some versions, right-click → Open isn't enough — Gatekeeper flags the app outright and moves it straight to the Trash. If that happens:
-  1. Drag `Stand Up Buddy.app` from the mounted disk image into your Applications folder.
-  2. Double-click **`Fix macOS Security Block.command`**, also on the disk image, right next to the app. It'll ask for your Mac login password (typing is invisible, that's normal) and re-signs the app locally so macOS trusts it. You only need to do this once per install.
+- **macOS**: because the app isn't notarized, macOS blocks it on first launch — and on recent versions it may move it straight to the Trash rather than offer an "Open" option. The reliable fix is one Terminal command:
+  1. Drag `Stand Up Buddy.app` from the disk image into your **Applications** folder.
+  2. Open **Terminal** (Spotlight → type "Terminal"), paste the line below, and press Return. It'll ask for your Mac login password (typing is invisible — that's normal):
+
+     ```bash
+     sudo xattr -cr "/Applications/Stand Up Buddy.app" && sudo codesign --force --deep --sign - "/Applications/Stand Up Buddy.app"
+     ```
+
   3. Open Stand Up Buddy from Applications as normal.
 
-  (The script only touches Stand Up Buddy — feel free to open it in a text editor first to see exactly what it runs: [`scripts/fix-mac-security-block.command`](scripts/fix-mac-security-block.command).)
-
-  **Prefer Terminal?** With `Stand Up Buddy.app` already in your Applications folder, this does the same thing as the script — paste it into Terminal and enter your Mac password when asked:
-
-  ```bash
-  sudo xattr -cr "/Applications/Stand Up Buddy.app" && sudo codesign --force --deep --sign - "/Applications/Stand Up Buddy.app"
-  ```
-
-  It clears the quarantine flag macOS puts on downloaded apps and re-signs Stand Up Buddy locally so it'll launch. (Only run commands like this for apps you trust — it works because it re-signs the app under your own machine's authority.)
+  This clears the quarantine flag macOS puts on downloaded apps and re-signs the app locally so it'll launch. (Only run commands like this for apps you trust.) The permanent fix that removes this step for everyone is Apple notarization, which requires a paid Apple Developer account.
 - **Windows**: SmartScreen will show "Windows protected your PC". Click **More info**, then **Run anyway**.
 
 ## What it does
