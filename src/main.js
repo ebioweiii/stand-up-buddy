@@ -31,6 +31,7 @@ let timerHandle = null;
 let autoDismissHandle = null;
 let awayNudgeHandle = null;
 let isAway = false;
+let popupMinimized = false;
 let nextFireAt = null;
 
 function minutesToMs(minutes) {
@@ -105,6 +106,7 @@ function createPopupWindow() {
 // first show. Every subsequent presentation has to be pushed to the
 // renderer explicitly, or the message and sound would only ever work once.
 function presentPopup(mode) {
+  popupMinimized = false;
   const intervalMinutes = store.get('intervalMinutes');
   const muted = store.get('muted');
   const send = () => popupWindow.webContents.send('popup-show', { mode, intervalMinutes, muted });
@@ -140,6 +142,7 @@ function showPopup(mode = 'reminder') {
 }
 
 function dismissPopup() {
+  popupMinimized = false;
   if (autoDismissHandle) {
     clearTimeout(autoDismissHandle);
     autoDismissHandle = null;
@@ -150,12 +153,34 @@ function dismissPopup() {
   }
 }
 
+// Minimize just hides the window — unlike dismissPopup(), it doesn't touch
+// the auto-dismiss timer, away state, or reschedule anything, so whatever
+// was in progress (a reminder, the away countdown) keeps running exactly as
+// if the popup were still on screen. The renderer stops its own alarm sound
+// before calling this, so nothing keeps blaring from a hidden window.
+function minimizePopup() {
+  if (popupWindow && !popupWindow.isDestroyed()) {
+    popupWindow.hide();
+    popupMinimized = true;
+    refreshTrayMenu();
+  }
+}
+
+function restorePopup() {
+  if (popupWindow && !popupWindow.isDestroyed() && popupMinimized) {
+    popupWindow.showInactive();
+    popupMinimized = false;
+    refreshTrayMenu();
+  }
+}
+
 // Clicking "Standing!" doesn't dismiss the popup — it switches to an "away"
 // state and waits for an explicit "I'm back" click before starting the next
 // countdown, so the interval reflects time actually spent back at the desk,
 // not time spent away. A one-off nudge fires if you forget to click back in.
 function enterAwayMode() {
   isAway = true;
+  popupMinimized = false;
   if (autoDismissHandle) {
     clearTimeout(autoDismissHandle);
     autoDismissHandle = null;
@@ -201,6 +226,10 @@ ipcMain.on('popup-snooze', () => {
 
 ipcMain.on('popup-welcome-dismiss', () => {
   dismissPopup();
+});
+
+ipcMain.on('popup-minimize', () => {
+  minimizePopup();
 });
 
 ipcMain.on('popup-quit-request', () => {
@@ -252,6 +281,7 @@ function updateTrayIcon() {
 }
 
 function formatCountdown() {
+  if (popupMinimized) return 'Reminder minimized — click "Show reminder"';
   if (isAway) return "Waiting for you to get back...";
   if (store.get('paused') || !nextFireAt) return 'Reminders paused';
   const msLeft = Math.max(0, nextFireAt - Date.now());
@@ -288,6 +318,7 @@ function refreshTrayMenu() {
       })),
     },
     { type: 'separator' },
+    ...(popupMinimized ? [{ label: 'Show reminder', click: () => restorePopup() }] : []),
     {
       label: 'Stand up now',
       click: () => showPopup(),

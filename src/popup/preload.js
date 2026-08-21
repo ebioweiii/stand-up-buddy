@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('standUpBuddy', {
   imBack: () => ipcRenderer.send('popup-im-back'),
   snooze: () => ipcRenderer.send('popup-snooze'),
   welcomeDismiss: () => ipcRenderer.send('popup-welcome-dismiss'),
+  minimize: () => ipcRenderer.send('popup-minimize'),
   quit: () => ipcRenderer.send('popup-quit-request'),
   onShow: (callback) => ipcRenderer.on('popup-show', (_event, payload) => callback(payload)),
   onHide: (callback) => ipcRenderer.on('popup-hide', () => callback()),

@@ -184,6 +184,11 @@ function initButtons() {
   document.getElementById('btn-quit').addEventListener('click', () => {
     window.standUpBuddy.quit();
   });
+  document.getElementById('btn-minimize').addEventListener('click', () => {
+    // Just get it out of the way — don't touch the reminder/away state at all.
+    stopBlipLoop();
+    window.standUpBuddy.minimize();
+  });
   // btn-standing's click handler is (re)assigned per mode in applyMode().
 }
 

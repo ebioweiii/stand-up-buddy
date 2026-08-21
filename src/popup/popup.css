@@ -90,19 +90,12 @@ html, body {
   flex-shrink: 0;
 }
 
-.title-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--accent-pink);
-  display: inline-block;
-  flex-shrink: 0;
-}
-
 .title-text {
   flex: 1;
   text-align: center;
 }
 
+.title-min,
 .title-close {
   flex-shrink: 0;
   cursor: pointer;
@@ -116,10 +109,20 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-pink);
-  border: 2px solid var(--accent-pink-dark);
+  border: 2px solid;
 }
 
+.title-min {
+  background: var(--accent-purple);
+  border-color: var(--accent-purple-dark);
+}
+
+.title-close {
+  background: var(--accent-pink);
+  border-color: var(--accent-pink-dark);
+}
+
+.title-min:active,
 .title-close:active {
   transform: translate(1px, 1px);
 }
