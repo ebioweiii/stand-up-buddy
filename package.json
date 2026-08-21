@@ -1,6 +1,6 @@
 {
   "name": "stand-up-buddy",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A whimsical retro pixel-art reminder that pops up every so often to tell you to stand up.",
   "main": "src/main.js",
   "author": "Stand Up Buddy",
@@ -19,7 +19,8 @@
     "electron-builder": "^24.13.3"
   },
   "dependencies": {
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.9"
   },
   "build": {
     "appId": "com.standupbuddy.app",
@@ -33,11 +34,24 @@
     "directories": {
       "output": "dist"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "ebioweiii",
+      "repo": "stand-up-buddy"
+    },
     "mac": {
       "target": [
         {
           "target": "dmg",
-          "arch": ["universal"]
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
         }
       ],
       "category": "public.app-category.healthcare-fitness",
@@ -49,7 +63,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },

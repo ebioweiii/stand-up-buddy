@@ -36,9 +36,15 @@ These builds aren't code-signed (that requires a paid Apple Developer ID / Windo
 
 - Lives in the tray / menu bar — no dock icon, no clutter
 - Every 30 minutes (configurable to 15/45/60), a small pixel-art buddy pops up in the corner of your screen with a short 8-bit blip
-- **Standing! 🎉** dismisses and resets the timer, **5 more min** snoozes
-- Pause/resume and change the interval from the tray menu
+- **Standing! 🎉** switches to a waiting screen with a live "Standing for MM:SS" counter — the next countdown only starts once you click **I'm back**, not the moment you click Standing
+- **5 more min** snoozes; the **–** button minimizes the popup without changing anything; **×** quits
+- Pause/resume, mute, and change the interval from the tray menu
+- Checks for updates automatically (and via **Check for Updates…** in the tray menu) — see the note below
 - Settings persist locally between launches
+
+### Auto-updates
+
+The app checks GitHub Releases for newer versions on launch and periodically after that. On **Windows**, downloaded updates install automatically. On **macOS**, automatic install currently requires the app to be notarized with a real Apple Developer ID — since this build is only ad-hoc signed, update checks work but installing the downloaded update will likely fail with a signature error until notarization is set up. Until then, macOS users should grab new versions from the [Releases page](https://github.com/ebioweiii/stand-up-buddy/releases/latest) directly.
 
 ## Development
 

@@ -3,6 +3,7 @@
 const { app, Tray, Menu, BrowserWindow, screen, ipcMain, dialog } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
+const { autoUpdater } = require('electron-updater');
 const { createTrayIcon } = require('./trayIcon');
 
 const INTERVAL_CHOICES = [15, 30, 45, 60];
@@ -245,6 +246,78 @@ ipcMain.on('popup-quit-request', () => {
   if (choice === 0) app.quit();
 });
 
+// On macOS, Squirrel.Mac requires the running app and the downloaded update
+// to share a real code-signing identity. Our build is only ad-hoc signed
+// (see README), so installing the update will likely fail there until the
+// app is notarized with a proper Apple Developer ID — the errors below are
+// handled gracefully rather than left to surface as a crash.
+let manualUpdateCheckPending = false;
+
+function checkForUpdates(manual) {
+  if (!app.isPackaged) {
+    if (manual) {
+      dialog.showMessageBox({
+        type: 'info',
+        title: 'Check for Updates',
+        message: "Updates only work in the packaged app, not this dev build.",
+      });
+    }
+    return;
+  }
+  manualUpdateCheckPending = manual;
+  autoUpdater.checkForUpdates().catch((err) => {
+    manualUpdateCheckPending = false;
+    if (manual) {
+      dialog.showMessageBox({
+        type: 'error',
+        title: "Couldn't check for updates",
+        message: "Couldn't reach GitHub to check for updates.",
+        detail: String(err && err.message ? err.message : err),
+      });
+    }
+  });
+}
+
+autoUpdater.on('update-not-available', () => {
+  if (manualUpdateCheckPending) {
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'Up to date',
+      message: `You're on the latest version (${app.getVersion()}).`,
+    });
+  }
+  manualUpdateCheckPending = false;
+});
+
+autoUpdater.on('error', (err) => {
+  if (manualUpdateCheckPending) {
+    const macNote = process.platform === 'darwin'
+      ? "\n\nOn macOS, installing updates requires the app to be notarized. Until then, grab the latest version from the website instead."
+      : '';
+    dialog.showMessageBox({
+      type: 'error',
+      title: "Couldn't check for updates",
+      message: "Couldn't check for updates right now.",
+      detail: String(err && err.message ? err.message : err) + macNote,
+    });
+  }
+  manualUpdateCheckPending = false;
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  manualUpdateCheckPending = false;
+  const choice = dialog.showMessageBoxSync({
+    type: 'info',
+    buttons: ['Restart Now', 'Later'],
+    defaultId: 0,
+    cancelId: 1,
+    title: 'Update ready',
+    message: `Stand Up Buddy ${info.version} is ready to install.`,
+    detail: "Restart now to finish updating, or keep working — it'll install next time you quit.",
+  });
+  if (choice === 0) autoUpdater.quitAndInstall();
+});
+
 function setPaused(paused) {
   store.set('paused', paused);
   if (paused) {
@@ -325,6 +398,11 @@ function refreshTrayMenu() {
     },
     { type: 'separator' },
     {
+      label: 'Check for Updates…',
+      click: () => checkForUpdates(true),
+    },
+    { type: 'separator' },
+    {
       label: 'Quit Stand Up Buddy',
       click: () => app.quit(),
     },
@@ -354,6 +432,9 @@ app.whenReady().then(() => {
   createTray();
   scheduleNext(store.get('intervalMinutes'));
   showPopup('welcome');
+
+  checkForUpdates(false);
+  setInterval(() => checkForUpdates(false), 6 * 60 * 60 * 1000);
 });
 
 app.on('window-all-closed', (event) => {
