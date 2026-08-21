@@ -96,6 +96,40 @@ function flashCheer() {
     window.BuddySprite.boxShadowForFrame('cheer');
 }
 
+let awayCounterHandle = null;
+let awayStartedAt = null;
+
+function formatDuration(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  return hours > 0
+    ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(minutes)}:${pad(seconds)}`;
+}
+
+function startAwayCounter() {
+  stopAwayCounter();
+  awayStartedAt = Date.now();
+  const el = document.getElementById('away-counter');
+  el.style.display = 'block';
+  const tick = () => {
+    el.textContent = `⏱ Standing for ${formatDuration(Date.now() - awayStartedAt)}`;
+  };
+  tick();
+  awayCounterHandle = setInterval(tick, 1000);
+}
+
+function stopAwayCounter() {
+  if (awayCounterHandle) {
+    clearInterval(awayCounterHandle);
+    awayCounterHandle = null;
+  }
+  document.getElementById('away-counter').style.display = 'none';
+}
+
 function pickMessage(mode, intervalMinutes) {
   if (mode === 'welcome') {
     const text = WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
@@ -120,14 +154,17 @@ function applyMode(mode, intervalMinutes) {
       stopBlipLoop();
       window.standUpBuddy.welcomeDismiss();
     };
+    stopAwayCounter();
   } else if (mode === 'away') {
     snoozeBtn.style.display = 'none';
     standingBtn.textContent = "I'm back 👋";
     standingBtn.onclick = () => {
       stopBlipLoop();
+      stopAwayCounter();
       window.standUpBuddy.imBack();
     };
     flashCheer();
+    startAwayCounter();
   } else {
     snoozeBtn.style.display = '';
     standingBtn.textContent = 'Standing! 🎉';
@@ -135,6 +172,7 @@ function applyMode(mode, intervalMinutes) {
       stopBlipLoop();
       window.standUpBuddy.standing();
     };
+    stopAwayCounter();
   }
 }
 
@@ -166,6 +204,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.standUpBuddy.onHide(() => {
     stopBlipLoop();
+    stopAwayCounter();
   });
 
   window.standUpBuddy.onNudge(() => {

@@ -10,7 +10,7 @@ const SNOOZE_MINUTES = 5;
 const AWAY_NUDGE_MS = 10 * 60 * 1000;
 const POPUP_AUTO_DISMISS_MS = 2 * 60 * 1000;
 const POPUP_WIDTH = 340;
-const POPUP_HEIGHT = 300;
+const POPUP_HEIGHT = 328;
 const POPUP_MARGIN = 20;
 
 const store = new Store({

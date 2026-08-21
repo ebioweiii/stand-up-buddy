@@ -189,6 +189,14 @@ html, body {
   max-width: 240px;
 }
 
+.away-counter {
+  display: none;
+  margin: 0;
+  font-size: 13px;
+  color: var(--body-green-dark);
+  letter-spacing: 1px;
+}
+
 .buttons {
   display: flex;
   gap: 10px;
