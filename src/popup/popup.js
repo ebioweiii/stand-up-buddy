@@ -187,6 +187,14 @@ function applyMode(mode, intervalMinutes) {
   }
 }
 
+function updateMuteButton() {
+  const btn = document.getElementById('btn-mute');
+  btn.textContent = muted ? '🔇' : '🔊';
+  const label = muted ? 'Unmute sound' : 'Mute sound';
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
+}
+
 function initButtons() {
   document.getElementById('btn-snooze').addEventListener('click', () => {
     stopBlipLoop();
@@ -200,6 +208,11 @@ function initButtons() {
     stopBlipLoop();
     window.standUpBuddy.minimize();
   });
+  document.getElementById('btn-mute').addEventListener('click', () => {
+    // Wait for main's broadcast to actually flip `muted`, keeping the tray
+    // menu label and this button in sync from one source of truth.
+    window.standUpBuddy.toggleMute();
+  });
   // btn-standing's click handler is (re)assigned per mode in applyMode().
 }
 
@@ -207,8 +220,11 @@ window.addEventListener('DOMContentLoaded', () => {
   initSprite();
   initButtons();
 
+  updateMuteButton();
+
   window.standUpBuddy.onShow(({ mode, intervalMinutes, muted: initialMuted }) => {
     if (typeof initialMuted === 'boolean') muted = initialMuted;
+    updateMuteButton();
     applyMode(mode, intervalMinutes);
     // Arriving into "away" mode is silent — the alarm already did its job.
     if (mode === 'away') {
@@ -235,6 +251,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.standUpBuddy.onMuteChanged(({ muted: newMuted }) => {
     muted = newMuted;
+    updateMuteButton();
     if (muted) stopBlipLoop();
   });
 });

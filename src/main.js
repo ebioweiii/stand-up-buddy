@@ -258,6 +258,10 @@ ipcMain.on('popup-minimize', () => {
   minimizePopup();
 });
 
+ipcMain.on('popup-toggle-mute', () => {
+  setMuted(!store.get('muted'));
+});
+
 ipcMain.on('popup-quit-request', () => {
   const choice = dialog.showMessageBoxSync(popupWindow, {
     type: 'question',

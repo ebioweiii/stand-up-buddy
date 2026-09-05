@@ -78,6 +78,7 @@ html, body {
 }
 
 .titlebar {
+  position: relative;
   background: var(--outline);
   color: var(--bg-panel);
   font-size: 10px;
@@ -91,11 +92,22 @@ html, body {
   -webkit-app-region: drag;
 }
 
-.title-text {
-  flex: 1;
-  text-align: center;
+.title-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
+.title-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.title-mute,
 .title-min,
 .title-close {
   flex-shrink: 0;
@@ -114,6 +126,7 @@ html, body {
   -webkit-app-region: no-drag;
 }
 
+.title-mute,
 .title-min {
   background: var(--accent-purple);
   border-color: var(--accent-purple-dark);
@@ -124,6 +137,7 @@ html, body {
   border-color: var(--accent-pink-dark);
 }
 
+.title-mute:active,
 .title-min:active,
 .title-close:active {
   transform: translate(1px, 1px);
