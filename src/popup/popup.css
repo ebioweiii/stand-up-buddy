@@ -88,6 +88,7 @@ html, body {
   justify-content: space-between;
   gap: 8px;
   flex-shrink: 0;
+  -webkit-app-region: drag;
 }
 
 .title-text {
@@ -110,6 +111,7 @@ html, body {
   align-items: center;
   justify-content: center;
   border: 2px solid;
+  -webkit-app-region: no-drag;
 }
 
 .title-min {
@@ -203,7 +205,7 @@ html, body {
 .buttons {
   display: flex;
   gap: 10px;
-  padding: 14px;
+  padding: 14px 20px 20px;
   flex-shrink: 0;
 }
 

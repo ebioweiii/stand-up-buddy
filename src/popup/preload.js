@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('standUpBuddy', {
   onShow: (callback) => ipcRenderer.on('popup-show', (_event, payload) => callback(payload)),
   onHide: (callback) => ipcRenderer.on('popup-hide', () => callback()),
   onNudge: (callback) => ipcRenderer.on('popup-nudge', () => callback()),
+  onCheckIn: (callback) => ipcRenderer.on('popup-checkin', () => callback()),
   onMuteChanged: (callback) => ipcRenderer.on('popup-mute-changed', (_event, payload) => callback(payload)),
 });

@@ -19,6 +19,11 @@ const AWAY_MESSAGES = [
   "Enjoy the stretch — click below once you're back at work.",
 ];
 
+const AWAY_CHECKIN_MESSAGES = [
+  "Still going? It's been a while — tap the button when you're back.",
+  "Checking in! Tap below whenever you're back at your desk.",
+];
+
 let audioCtx = null;
 let blipLoopHandle = null;
 let muted = false;
@@ -26,6 +31,12 @@ let muted = false;
 function getAudioContext() {
   if (!audioCtx || audioCtx.state === 'closed') {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // The popup is shown via showInactive() and never gets a click, so the
+  // context can otherwise get stuck 'suspended' under stricter autoplay
+  // policies. Resuming is a no-op once it's already running.
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
   }
   return audioCtx;
 }
@@ -214,6 +225,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.standUpBuddy.onNudge(() => {
     playBlipOnce();
+  });
+
+  window.standUpBuddy.onCheckIn(() => {
+    document.getElementById('message').textContent =
+      AWAY_CHECKIN_MESSAGES[Math.floor(Math.random() * AWAY_CHECKIN_MESSAGES.length)];
+    startBlipLoop();
   });
 
   window.standUpBuddy.onMuteChanged(({ muted: newMuted }) => {

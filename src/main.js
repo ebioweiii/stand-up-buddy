@@ -6,12 +6,18 @@ const Store = require('electron-store');
 const { autoUpdater } = require('electron-updater');
 const { createTrayIcon } = require('./trayIcon');
 
+// The popup is shown via showInactive() (so it never steals focus), which
+// means it never gets a user gesture — Chromium's default autoplay policy
+// would otherwise leave the Web Audio context permanently suspended.
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 const INTERVAL_CHOICES = [15, 30, 45, 60];
 const SNOOZE_MINUTES = 5;
-const AWAY_NUDGE_MS = 10 * 60 * 1000;
+const AWAY_SOFT_NUDGE_MS = 10 * 60 * 1000;
+const AWAY_HARD_NUDGE_MS = 60 * 60 * 1000;
 const POPUP_AUTO_DISMISS_MS = 2 * 60 * 1000;
 const POPUP_WIDTH = 340;
-const POPUP_HEIGHT = 328;
+const POPUP_HEIGHT = 360;
 const POPUP_MARGIN = 20;
 
 const store = new Store({
@@ -31,6 +37,7 @@ let popupWindow = null;
 let timerHandle = null;
 let autoDismissHandle = null;
 let awayNudgeHandle = null;
+let awayCheckInHandle = null;
 let isAway = false;
 let popupMinimized = false;
 let nextFireAt = null;
@@ -76,7 +83,7 @@ function createPopupWindow() {
     hasShadow: true,
     alwaysOnTop: true,
     resizable: false,
-    movable: false,
+    movable: true,
     minimizable: false,
     maximizable: false,
     fullscreenable: false,
@@ -178,7 +185,10 @@ function restorePopup() {
 // Clicking "Standing!" doesn't dismiss the popup — it switches to an "away"
 // state and waits for an explicit "I'm back" click before starting the next
 // countdown, so the interval reflects time actually spent back at the desk,
-// not time spent away. A one-off nudge fires if you forget to click back in.
+// not time spent away. A quiet nudge plays after 10 minutes in case you
+// forgot to click back in; if a full hour goes by, the popup forces itself
+// back on screen (un-minimizing it if needed) and re-sounds the alarm, then
+// keeps doing that every hour so it can't be silently forgotten forever.
 function enterAwayMode() {
   isAway = true;
   popupMinimized = false;
@@ -199,7 +209,18 @@ function enterAwayMode() {
     if (isAway && popupWindow && !popupWindow.isDestroyed()) {
       popupWindow.webContents.send('popup-nudge');
     }
-  }, AWAY_NUDGE_MS);
+  }, AWAY_SOFT_NUDGE_MS);
+
+  if (awayCheckInHandle) clearInterval(awayCheckInHandle);
+  awayCheckInHandle = setInterval(() => {
+    if (!isAway || !popupWindow || popupWindow.isDestroyed()) return;
+    popupMinimized = false;
+    const { x, y } = getPopupPosition();
+    popupWindow.setPosition(x, y);
+    popupWindow.showInactive();
+    popupWindow.webContents.send('popup-checkin');
+    refreshTrayMenu();
+  }, AWAY_HARD_NUDGE_MS);
 }
 
 function exitAwayMode() {
@@ -207,6 +228,10 @@ function exitAwayMode() {
   if (awayNudgeHandle) {
     clearTimeout(awayNudgeHandle);
     awayNudgeHandle = null;
+  }
+  if (awayCheckInHandle) {
+    clearInterval(awayCheckInHandle);
+    awayCheckInHandle = null;
   }
 }
 
@@ -421,7 +446,13 @@ function createTray() {
   setInterval(refreshTrayMenu, 30 * 1000);
 
   if (process.platform === 'darwin') {
-    tray.on('click', () => tray.popUpContextMenu());
+    tray.on('click', () => {
+      if (popupMinimized) {
+        restorePopup();
+      } else {
+        tray.popUpContextMenu();
+      }
+    });
   }
 }
 
@@ -446,4 +477,5 @@ app.on('before-quit', () => {
   clearScheduledTimer();
   if (autoDismissHandle) clearTimeout(autoDismissHandle);
   if (awayNudgeHandle) clearTimeout(awayNudgeHandle);
+  if (awayCheckInHandle) clearInterval(awayCheckInHandle);
 });
